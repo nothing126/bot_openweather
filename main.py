@@ -1,6 +1,7 @@
 import telebot
 import requests
 from telebot import types
+import openpyxl
 
 TOKEN = '6096937364:AAF83XErtkuYB6bbuDf5R8x2Gp_bTaZkzT4'  # telegram api-key
 bot = telebot.TeleBot(TOKEN)  # bot init
@@ -32,36 +33,44 @@ def get_weather(city_name):  # function to  reqest to openweathermap for receive
     else:
         return "Не удалось получить данные о погоде."  # if request is unsuccesful thorw this message
 
-
-@bot.message_handler(commands=['start', 'help'])  # init comands start and help
+@bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     markup = types.ReplyKeyboardMarkup(row_width=2)
-    item1 = types.KeyboardButton("Кишинев")  # markup 1 for first city
-    item2 = types.KeyboardButton("Бельцы")  # markup 2 for second city
-    item3 = types.KeyboardButton("Париж")  # markup 3 for third city
+    item1 = types.KeyboardButton("Кишинев")
+    item2 = types.KeyboardButton("Бельцы")
+    markup.add(item1, item2)
 
-    markup.add(item1, item2, item3)  # add markup to bot interface
-
-    bot.reply_to(message, "Привет! Я погодный бот. Выберите город из списка ниже:",
-                 reply_markup=markup)  # message to choose the city
+    bot.reply_to(message, "Привет! Я погодный бот. Выберите город из списка ниже:", reply_markup=markup)
 
 
-@bot.message_handler(func=lambda message: True)
+@bot.message_handler(func=lambda message: True, )
 def handle_city_choice(message):
-    if message.text == "Кишинев":  # conditions for choosen variant
+    if message.text == "Кишинев":
         city_name = "Chisinau"
-        weather_info = get_weather(city_name)
-        bot.reply_to(message, weather_info)
-    elif message.text == "Бельцы": # conditions for choosen variant
+    elif message.text == "Бельцы":
         city_name = "Balti"
-        weather_info = get_weather(city_name)
-        bot.reply_to(message, weather_info)
-    elif message.text == "Париж": # conditions for choosen variant
-        city_name = "Paris"
-        weather_info = get_weather(city_name)
-        bot.reply_to(message, weather_info)
     else:
-        bot.reply_to(message, "Выберите город из предложенных вариантов.") #if user dont choose one of variant
+        bot.reply_to(message, "Выберите город из предложенных вариантов. ")
+        return
+
+    user_name = message.from_user.first_name
+    weather_info = get_weather(city_name)
+    save_to_excel(user_name, city_name)
+    bot.reply_to(message, weather_info)
 
 
-bot.polling() #start bot
+def save_to_excel(user_name, city_name):
+    excel_path = 'users_data.xlsx'
+    try:
+        wb = openpyxl.load_workbook(excel_path)
+        sheet = wb.active
+    except FileNotFoundError:
+        wb = openpyxl.Workbook()
+        sheet = wb.active
+        sheet.append(["Имя пользователя", "Выбранный город"])
+
+    sheet.append([user_name, city_name])
+    wb.save(excel_path)
+
+
+bot.polling()
