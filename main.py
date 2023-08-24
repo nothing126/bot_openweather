@@ -3,6 +3,7 @@ import requests
 from telebot import types
 import openpyxl
 
+
 TOKEN = '6096937364:AAF83XErtkuYB6bbuDf5R8x2Gp_bTaZkzT4'  # telegram api-key
 bot = telebot.TeleBot(TOKEN)  # bot init
 
@@ -27,11 +28,13 @@ def get_weather(city_name):  # function to  reqest to openweathermap for receive
         weather_description = city_data['weather'][0]['description']  # take weather description
         temperature_f = city_data['main']['temp']  # take temperature
         temperature_c = fahrenheit_to_celsius(temperature_f)  # call function to transfer temperature
-        return f"Город: {city.capitalize()}\nВлажность: {humidity}%\nПогода: {weather_description}\n" \
+        return f"Город: {city.capitalize()}\n" \
+               f"Влажность: {humidity}%\n" \
+               f"Погода: {weather_description}\n" \
                f"Температура: {temperature_c:.1f}°C"  # base for reponse for user
-
     else:
         return "Не удалось получить данные о погоде."  # if request is unsuccesful thorw this message
+
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
